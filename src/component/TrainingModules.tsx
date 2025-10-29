@@ -236,15 +236,14 @@ export const TrainingModules = () => {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5">
                         {module.slides_url && (
                           <button
                             onClick={() => setPreviewModule(module)}
-                            className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors"
-                            title="Preview Slides"
+                            className="p-2 hover:bg-blue-50 rounded-lg text-blue-600 transition-colors"
+                            title="Preview PPT"
                           >
                             <Presentation className="w-4 h-4" />
-                            Preview PPT
                           </button>
                         )}
                         {module.has_test && test && (
