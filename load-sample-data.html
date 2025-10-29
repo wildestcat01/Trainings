@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load Sample Data - Training Admin</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0f172a;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+        button {
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #1e293b;
+        }
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+        }
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        pre {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+        .step {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #0f172a;
+        }
+        .log {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Load Sample Data</h1>
+        <p class="subtitle">Click the button below to load sample employees and training modules into your database.</p>
+
+        <div class="step">
+            <strong>What will be loaded:</strong>
+            <ul>
+                <li>10 Sample Employees (CXO, Director, Manager, Senior Executive, Executive)</li>
+                <li>24 Training Modules across 5 categories (Soft Communications, POSH, CRM, Sales, Digital Marketing)</li>
+            </ul>
+        </div>
+
+        <button id="loadBtn" onclick="loadSampleData()">Load Sample Data</button>
+        <button onclick="clearData()" style="background: #dc2626;">Clear All Data</button>
+
+        <div id="status" class="status"></div>
+        <div id="log" class="log" style="display: none;"></div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        const supabaseUrl = 'https://hddicrovxlqlwdoncdrn.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZGljcm92eGxxbHdkb25jZHJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2MjgyMDgsImV4cCI6MjA3NzIwNDIwOH0.6YpWwIUX6Im1KrBXuv4YvkdnzOFspHYzv0EzNHevIN4';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        window.supabase = supabase;
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+
+        function addLog(message) {
+            const log = document.getElementById('log');
+            log.style.display = 'block';
+            log.innerHTML += `${new Date().toLocaleTimeString()}: ${message}<br>`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        window.clearData = async function() {
+            if (!confirm('This will delete ALL employees and training modules. Continue?')) return;
+
+            const btn = document.getElementById('loadBtn');
+            btn.disabled = true;
+            showStatus('Clearing data...', 'info');
+
+            try {
+                await supabase.from('employee_progress').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                await supabase.from('batch_modules').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                await supabase.from('batch_employees').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                await supabase.from('batches').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                await supabase.from('training_modules').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                await supabase.from('employees').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+                showStatus('All data cleared successfully!', 'success');
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        window.loadSampleData = async function() {
+            const btn = document.getElementById('loadBtn');
+            btn.disabled = true;
+            document.getElementById('log').innerHTML = '';
+            showStatus('Loading sample data...', 'info');
+
+            try {
+                // Sample Employees
+                addLog('Inserting employees...');
+                const employees = [
+                    { employee_id: 'EMP001', name: 'John Smith', phone_number: '9876543210', email: 'john.smith@sparkl.com', designation: 'CXO', department: 'Executive', date_of_joining: '2020-01-15', location: 'New York' },
+                    { employee_id: 'EMP002', name: 'Sarah Johnson', phone_number: '9876543211', email: 'sarah.johnson@sparkl.com', designation: 'Director', department: 'Sales', date_of_joining: '2020-03-20', location: 'San Francisco' },
+                    { employee_id: 'EMP003', name: 'Michael Chen', phone_number: '9876543212', email: 'michael.chen@sparkl.com', designation: 'Manager', department: 'Operations', date_of_joining: '2021-06-10', location: 'Chicago' },
+                    { employee_id: 'EMP004', name: 'Emily Davis', phone_number: '9876543213', email: 'emily.davis@sparkl.com', designation: 'Senior Executive', department: 'Marketing', date_of_joining: '2021-09-05', location: 'Boston' },
+                    { employee_id: 'EMP005', name: 'Robert Wilson', phone_number: '9876543214', email: 'robert.wilson@sparkl.com', designation: 'Manager', department: 'HR', date_of_joining: '2022-01-12', location: 'Seattle' },
+                    { employee_id: 'EMP006', name: 'Lisa Anderson', phone_number: '9876543215', email: 'lisa.anderson@sparkl.com', designation: 'Executive', department: 'Finance', date_of_joining: '2022-04-18', location: 'Austin' },
+                    { employee_id: 'EMP007', name: 'David Martinez', phone_number: '9876543216', email: 'david.martinez@sparkl.com', designation: 'Senior Executive', department: 'Technology', date_of_joining: '2022-07-22', location: 'Denver' },
+                    { employee_id: 'EMP008', name: 'Jennifer Lee', phone_number: '9876543217', email: 'jennifer.lee@sparkl.com', designation: 'Director', department: 'Product', date_of_joining: '2019-11-30', location: 'Los Angeles' },
+                    { employee_id: 'EMP009', name: 'William Taylor', phone_number: '9876543218', email: 'william.taylor@sparkl.com', designation: 'Manager', department: 'Customer Success', date_of_joining: '2023-02-14', location: 'Miami' },
+                    { employee_id: 'EMP010', name: 'Jessica Brown', phone_number: '9876543219', email: 'jessica.brown@sparkl.com', designation: 'CXO', department: 'Executive', date_of_joining: '2018-05-25', location: 'New York' }
+                ];
+
+                const { error: empError } = await supabase.from('employees').insert(employees);
+                if (empError) throw empError;
+                addLog(`✓ Inserted ${employees.length} employees`);
+
+                // Sample Training Modules
+                addLog('Inserting training modules...');
+                const modules = [
+                    { module_name: 'Soft Communications', designation: 'CXO', sub_module_title: 'Executive Presence and Leadership Communication', content_url: 'https://example.com/exec-presence.pdf', content_type: 'pdf', file_name: 'executive-presence.pdf' },
+                    { module_name: 'Soft Communications', designation: 'CXO', sub_module_title: 'Strategic Communication for C-Suite', content_url: 'https://example.com/strategic-comm.pdf', content_type: 'pdf', file_name: 'strategic-communication.pdf' },
+                    { module_name: 'Soft Communications', designation: 'Director', sub_module_title: 'Leading with Influence', content_url: 'https://example.com/leading-influence.pptx', content_type: 'pptx', file_name: 'leading-with-influence.pptx' },
+                    { module_name: 'Soft Communications', designation: 'Manager', sub_module_title: 'Team Communication Essentials', content_url: 'https://example.com/team-comm.pdf', content_type: 'pdf', file_name: 'team-communication.pdf' },
+                    { module_name: 'Soft Communications', designation: 'Manager', sub_module_title: 'Effective Feedback Techniques', content_url: 'https://example.com/feedback.pdf', content_type: 'pdf', file_name: 'feedback-techniques.pdf' },
+                    { module_name: 'Soft Communications', designation: 'Senior Executive', sub_module_title: 'Professional Email Writing', content_url: 'https://example.com/email-writing.pdf', content_type: 'pdf', file_name: 'email-writing.pdf' },
+                    { module_name: 'Soft Communications', designation: 'Executive', sub_module_title: 'Presentation Skills Fundamentals', content_url: 'https://example.com/presentation-basics.pptx', content_type: 'pptx', file_name: 'presentation-fundamentals.pptx' },
+
+                    { module_name: 'POSH', designation: 'CXO', sub_module_title: 'POSH Policy and Leadership Responsibility', content_url: 'https://example.com/posh-leadership.pdf', content_type: 'pdf', file_name: 'posh-leadership.pdf' },
+                    { module_name: 'POSH', designation: 'Director', sub_module_title: 'Creating Safe Workplaces', content_url: 'https://example.com/safe-workplace.pdf', content_type: 'pdf', file_name: 'creating-safe-workplaces.pdf' },
+                    { module_name: 'POSH', designation: 'Manager', sub_module_title: 'POSH Compliance for Managers', content_url: 'https://example.com/posh-managers.pdf', content_type: 'pdf', file_name: 'posh-compliance.pdf' },
+                    { module_name: 'POSH', designation: 'Senior Executive', sub_module_title: 'Understanding Workplace Harassment', content_url: 'https://example.com/workplace-harassment.pdf', content_type: 'pdf', file_name: 'understanding-harassment.pdf' },
+                    { module_name: 'POSH', designation: 'Executive', sub_module_title: 'POSH Awareness Training', content_url: 'https://example.com/posh-awareness.pdf', content_type: 'pdf', file_name: 'posh-awareness.pdf' },
+
+                    { module_name: 'CRM Mastery', designation: 'Director', sub_module_title: 'CRM Strategy and Implementation', content_url: 'https://example.com/crm-strategy.pdf', content_type: 'pdf', file_name: 'crm-strategy.pdf' },
+                    { module_name: 'CRM Mastery', designation: 'Manager', sub_module_title: 'Customer Relationship Best Practices', content_url: 'https://example.com/crm-best-practices.pdf', content_type: 'pdf', file_name: 'crm-best-practices.pdf' },
+                    { module_name: 'CRM Mastery', designation: 'Senior Executive', sub_module_title: 'Using CRM Tools Effectively', content_url: 'https://example.com/crm-tools.pptx', content_type: 'pptx', file_name: 'crm-tools-guide.pptx' },
+                    { module_name: 'CRM Mastery', designation: 'Executive', sub_module_title: 'Introduction to Customer Management', content_url: 'https://example.com/crm-intro.pdf', content_type: 'pdf', file_name: 'crm-introduction.pdf' },
+
+                    { module_name: 'Sales Excellence', designation: 'Director', sub_module_title: 'Sales Leadership and Team Management', content_url: 'https://example.com/sales-leadership.pdf', content_type: 'pdf', file_name: 'sales-leadership.pdf' },
+                    { module_name: 'Sales Excellence', designation: 'Manager', sub_module_title: 'Building High-Performance Sales Teams', content_url: 'https://example.com/sales-teams.pdf', content_type: 'pdf', file_name: 'sales-team-building.pdf' },
+                    { module_name: 'Sales Excellence', designation: 'Senior Executive', sub_module_title: 'Advanced Negotiation Skills', content_url: 'https://example.com/negotiation.pdf', content_type: 'pdf', file_name: 'negotiation-skills.pdf' },
+                    { module_name: 'Sales Excellence', designation: 'Executive', sub_module_title: 'Sales Fundamentals', content_url: 'https://example.com/sales-basics.pdf', content_type: 'pdf', file_name: 'sales-fundamentals.pdf' },
+
+                    { module_name: 'Digital Marketing', designation: 'Director', sub_module_title: 'Digital Marketing Strategy', content_url: 'https://example.com/digital-strategy.pdf', content_type: 'pdf', file_name: 'digital-marketing-strategy.pdf' },
+                    { module_name: 'Digital Marketing', designation: 'Manager', sub_module_title: 'Social Media Marketing for Managers', content_url: 'https://example.com/social-media.pptx', content_type: 'pptx', file_name: 'social-media-marketing.pptx' },
+                    { module_name: 'Digital Marketing', designation: 'Senior Executive', sub_module_title: 'Content Marketing Essentials', content_url: 'https://example.com/content-marketing.pdf', content_type: 'pdf', file_name: 'content-marketing.pdf' },
+                    { module_name: 'Digital Marketing', designation: 'Executive', sub_module_title: 'Introduction to Digital Marketing', content_url: 'https://example.com/digital-intro.pdf', content_type: 'pdf', file_name: 'digital-marketing-intro.pdf' }
+                ];
+
+                const { error: modError } = await supabase.from('training_modules').insert(modules);
+                if (modError) throw modError;
+                addLog(`✓ Inserted ${modules.length} training modules`);
+
+                showStatus(`Success! Loaded ${employees.length} employees and ${modules.length} training modules.`, 'success');
+                addLog('✓ All sample data loaded successfully!');
+
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+                addLog(`✗ Error: ${error.message}`);
+            } finally {
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
