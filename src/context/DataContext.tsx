@@ -1000,12 +1000,12 @@ const loadState = (): DataState => {
       return initialState;
     }
     const parsed = JSON.parse(stored) as DataState;
-    const normalizeModules = (modules: any[] | undefined): TrainingModule[] => {
+    const normalizeModules = (modules: TrainingModule[] | undefined): TrainingModule[] => {
       const fallback = modules && modules.length ? modules : initialState.modules;
       return fallback.map((module) => {
-        const legacyDesignation = (module as any).designation;
-        const designations = Array.isArray((module as any).designations)
-          ? (module as any).designations
+        const legacyDesignation = (module as TrainingModule & { designation?: string }).designation;
+        const designations = Array.isArray((module as TrainingModule & { designations?: string[] }).designations)
+          ? (module as TrainingModule & { designations: string[] }).designations
           : legacyDesignation
             ? [legacyDesignation]
             : [];

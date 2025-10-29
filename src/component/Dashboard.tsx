@@ -10,7 +10,7 @@ import {
   FileText,
   Download
 } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
+import { useData } from '../context/DataContext';
 
 interface StatCard {
   title: string;

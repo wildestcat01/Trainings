@@ -14,7 +14,7 @@ import {
   PostSessionStatus,
   TestStatus,
   useData
-} from '../contexts/DataContext';
+} from '../context/DataContext';
 
 type CombinedStatusFilter = 'all' | PostSessionStatus;
 type CombinedTestFilter = 'all' | TestStatus;

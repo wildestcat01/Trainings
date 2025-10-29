@@ -14,7 +14,7 @@ import {
   TrainingModule,
   Test,
   useData
-} from '../contexts/DataContext';
+} from '../context/DataContext';
 
 interface ModuleFormState {
   module_name: string;

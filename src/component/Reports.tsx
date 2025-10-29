@@ -10,7 +10,7 @@ import {
   Download,
   ChevronRight
 } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
+import { useData } from '../context/DataContext';
 
 type ReportView = 'performance' | 'completion' | 'module' | 'skill-gap';
 

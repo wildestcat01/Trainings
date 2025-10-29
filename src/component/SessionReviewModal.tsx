@@ -24,11 +24,8 @@ interface SessionReviewModalProps {
 const clampScore = (value: number) => Math.max(0, Math.min(100, Math.round(value)));
 
 export const SessionReviewModal = ({ isOpen, onClose, session }: SessionReviewModalProps) => {
-  if (!isOpen || !session) {
-    return null;
-  }
-
   const metrics = useMemo(() => {
+    if (!session) return [];
     const effectivenessBase =
       session.testScore != null
         ? (session.testScore + session.progressPercentage) / 2
@@ -44,9 +41,10 @@ export const SessionReviewModal = ({ isOpen, onClose, session }: SessionReviewMo
       { label: 'Proactiveness', value: proactiveness, tone: 'bg-amber-100 text-amber-700 border-amber-200' },
       { label: 'Collaboration', value: collaboration, tone: 'bg-purple-100 text-purple-700 border-purple-200' },
     ];
-  }, [session.progressPercentage, session.testScore]);
+  }, [session?.progressPercentage, session?.testScore]);
 
   const transcript = useMemo(() => {
+    if (!session) return [];
     const base = session.moduleTitle.split(' ').slice(0, 3).join(' ');
     return [
       `${session.employeeName} summarised key takeaways from ${base}.`,
@@ -54,7 +52,11 @@ export const SessionReviewModal = ({ isOpen, onClose, session }: SessionReviewMo
       'Responded to scenario-based questions demonstrating applied understanding.',
       'Outlined follow-up items for the broader team.'
     ];
-  }, [session.employeeName, session.moduleTitle]);
+  }, [session?.employeeName, session?.moduleTitle]);
+
+  if (!isOpen || !session) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">

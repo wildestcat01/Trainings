@@ -9,7 +9,7 @@ import {
   BookOpen,
   PlayCircle
 } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
+import { useData } from '../context/DataContext';
 import { SessionReviewModal } from './SessionReviewModal';
 
 interface BatchInsightsProps {
@@ -38,7 +38,7 @@ interface LeaderboardEntry {
 
 export const BatchInsights = ({ batchId, onClose }: BatchInsightsProps) => {
   const { batches, employees, batchEmployees, batchModules, employeeProgress, modules } = useData();
-  const batch = batches.find((item) => item.id === batchId);
+  const batch = batches.find((item: { id: string }) => item.id === batchId);
   const [selectedSession, setSelectedSession] = useState<{
     moduleTitle: string;
     moduleCategory?: string;
@@ -60,23 +60,23 @@ export const BatchInsights = ({ batchId, onClose }: BatchInsightsProps) => {
   }, [modules]);
 
   const { leaderboard, stats } = useMemo(() => {
-    const assignedEmployees = batchEmployees.filter((entry) => entry.batch_id === batchId);
-    const assignedModules = batchModules.filter((entry) => entry.batch_id === batchId);
+    const assignedEmployees = batchEmployees.filter((entry: { batch_id: string }) => entry.batch_id === batchId);
+    const assignedModules = batchModules.filter((entry: { batch_id: string }) => entry.batch_id === batchId);
     const totalModules = assignedModules.length;
 
-    const entries: LeaderboardEntry[] = assignedEmployees.map((assignment) => {
-      const employee = employees.find((item) => item.id === assignment.employee_id);
+    const entries: LeaderboardEntry[] = assignedEmployees.map((assignment: { employee_id: string }) => {
+      const employee = employees.find((item: { id: string }) => item.id === assignment.employee_id);
       const progressRecords = employeeProgress.filter(
-        (record) => record.batch_id === batchId && record.employee_id === assignment.employee_id
+        (record: { batch_id: string; employee_id: string }) => record.batch_id === batchId && record.employee_id === assignment.employee_id
       );
 
-      const completedCount = progressRecords.filter((record) => record.status === 'completed').length;
+      const completedCount = progressRecords.filter((record: { status: string }) => record.status === 'completed').length;
       const totalCount = progressRecords.length;
-      const testsCompleted = progressRecords.filter((record) => record.test_status === 'completed');
+      const testsCompleted = progressRecords.filter((record: { test_status: string }) => record.test_status === 'completed');
       const avgScore =
         testsCompleted.length > 0
           ? Math.round(
-              testsCompleted.reduce((sum, record) => sum + (record.test_score ?? 0), 0) /
+              testsCompleted.reduce((sum: number, record: { test_score?: number | null }) => sum + (record.test_score ?? 0), 0) /
                 testsCompleted.length
             )
           : 0;
@@ -84,22 +84,22 @@ export const BatchInsights = ({ batchId, onClose }: BatchInsightsProps) => {
       const avgProgress =
         totalCount > 0
           ? Math.round(
-              progressRecords.reduce((sum, record) => sum + record.progress_percentage, 0) / totalCount
+              progressRecords.reduce((sum: number, record: { progress_percentage: number }) => sum + record.progress_percentage, 0) / totalCount
             )
           : 0;
 
       const totalTime = completedCount * 45;
 
       const completedSessions = progressRecords
-        .filter((record) => record.status === 'completed')
-        .map((record) => ({
+        .filter((record: { status: string }) => record.status === 'completed')
+        .map((record: { module_id: string; completed_at?: string | null; test_score?: number | null; progress_percentage: number }) => ({
           moduleTitle: moduleMap[record.module_id]?.title ?? 'Completed Module',
           moduleCategory: moduleMap[record.module_id]?.category,
           completedAt: record.completed_at ?? null,
           testScore: record.test_score ?? null,
           progressPercentage: record.progress_percentage,
         }))
-        .sort((a, b) => {
+        .sort((a: { completedAt: string | null }, b: { completedAt: string | null }) => {
           if (!a.completedAt) return 1;
           if (!b.completedAt) return -1;
           return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime();

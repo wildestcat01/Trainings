@@ -10,7 +10,7 @@ import {
   X,
   BarChart3
 } from 'lucide-react';
-import { Batch, Employee, TrainingModule, useData } from '../contexts/DataContext';
+import { Batch, Employee, TrainingModule, useData } from '../context/DataContext';
 import { BatchInsights } from './BatchInsights';
 
 interface BatchWithCounts extends Batch {
@@ -38,15 +38,15 @@ export const TeamManagement = () => {
   const [showInsightsBatchId, setShowInsightsBatchId] = useState<string | null>(null);
 
   const enrichedBatches = useMemo<BatchWithCounts[]>(() => {
-    return batches.map((batch) => {
-      const employee_count = batchEmployees.filter((entry) => entry.batch_id === batch.id).length;
-      const module_count = batchModules.filter((entry) => entry.batch_id === batch.id).length;
+    return batches.map((batch: Batch) => {
+      const employee_count = batchEmployees.filter((entry: { batch_id: string }) => entry.batch_id === batch.id).length;
+      const module_count = batchModules.filter((entry: { batch_id: string }) => entry.batch_id === batch.id).length;
       return { ...batch, employee_count, module_count };
     });
   }, [batches, batchEmployees, batchModules]);
 
-  const activeEmployees = useMemo(() => employees.filter((employee) => employee.is_active), [employees]);
-  const activeModules = useMemo(() => modules.filter((module) => module.is_active), [modules]);
+  const activeEmployees = useMemo(() => employees.filter((employee: Employee) => employee.is_active), [employees]);
+  const activeModules = useMemo(() => modules.filter((module: TrainingModule) => module.is_active), [modules]);
 
   const handleTogglePublish = (batch: Batch) => {
     updateBatch(batch.id, {

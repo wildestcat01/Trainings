@@ -1,7 +1,7 @@
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { DataProvider } from './contexts/DataContext';
-import { AuthForm } from './components/AuthForm';
-import { AdminDashboard } from './components/AdminDashboard';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { DataProvider } from './context/DataContext';
+import { AuthForm } from './component/AuthForm';
+import { AdminDashboard } from './component/AdminDashboard';
 
 function AppContent() {
   const { user, loading } = useAuth();

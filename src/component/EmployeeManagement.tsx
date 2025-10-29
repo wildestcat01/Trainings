@@ -25,7 +25,7 @@ import {
   EmployeeProgress,
   TrainingModule,
   useData
-} from '../contexts/DataContext';
+} from '../context/DataContext';
 import { SessionReviewModal } from './SessionReviewModal';
 
 interface EmployeeWithProgress extends Employee {
